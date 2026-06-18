@@ -107,8 +107,8 @@
   .img-note {
     position:absolute; z-index:36;
     left:7%; bottom:14%;
-    font-size:clamp(15px,3.5vw,21px); font-weight:300;
-    letter-spacing:0.15em; color:rgba(255,255,255,0.48);
+    font-size:clamp(16px,3.8vw,23px); font-weight:300;
+    letter-spacing:0.15em; color:rgba(255,255,255,0.5);
     text-shadow:0 1px 6px rgba(0,0,0,0.6);
     opacity:0; visibility:hidden;
     transition:opacity var(--cross-fade) ease;
@@ -121,14 +121,18 @@
     position:absolute; z-index:36;
     right:max(6%,12px); top:50%; transform:translateY(-50%);
     writing-mode:vertical-rl;
-    font-size:clamp(16px,4vw,24px); font-weight:300;
-    letter-spacing:0.18em; color:rgba(255,255,255,0.48);
+    font-size:clamp(17px,4.2vw,26px); font-weight:300;
+    letter-spacing:0.18em; color:rgba(255,255,255,0.5);
     text-shadow:0 1px 6px rgba(0,0,0,0.6);
     opacity:0; visibility:hidden;
     transition:opacity var(--cross-fade) ease;
     pointer-events:none;
   }
   .img-note-v.on { visibility:visible; opacity:1; transition:opacity var(--cross-fade) ease; }
+
+  /* Annotation position variants */
+  .img-note.bottom-right { left:auto; right:7%; }
+  .img-note.bottom-left { left:7%; right:auto; }
 
   /* ═══ SEAL REVEAL — image 05 ═══ */
   .seal-reveal {
@@ -257,7 +261,7 @@
   <!-- Image annotations -->
   <div class="img-note" id="note-01">手工雕制</div>
   <div class="img-note-v" id="note-02">来自潘家园</div>
-  <div class="img-note" id="note-03">方寸之间</div>
+  <div class="img-note bottom-right" id="note-03">雅安绿</div>
 
   <!-- Seal text -->
   <div class="seal-reveal" id="seal-reveal">
