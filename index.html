@@ -106,33 +106,32 @@
   /* ═══ IMAGE ANNOTATIONS ═══ */
   .img-note {
     position:absolute; z-index:36;
-    left:7%; bottom:14%;
-    font-size:clamp(16px,3.8vw,23px); font-weight:300;
-    letter-spacing:0.15em; color:rgba(255,255,255,0.5);
-    text-shadow:0 1px 6px rgba(0,0,0,0.6);
+    left:10%; bottom:16%;
+    font-size:clamp(18px,4.5vw,28px); font-weight:300;
+    letter-spacing:0.12em; color:rgba(255,255,255,0.55);
+    text-shadow:0 1px 8px rgba(0,0,0,0.65);
     opacity:0; visibility:hidden;
-    transition:opacity var(--cross-fade) ease;
+    transition:opacity var(--cross-fade) ease, visibility 0s var(--cross-fade);
     pointer-events:none;
   }
-  .img-note.on { visibility:visible; opacity:1; transition:opacity var(--cross-fade) ease; }
+  .img-note.on { visibility:visible; opacity:1; transition:opacity var(--cross-fade) ease, visibility 0s 0s; }
 
   /* Vertical annotation for image 02 */
   .img-note-v {
     position:absolute; z-index:36;
-    right:max(6%,12px); top:50%; transform:translateY(-50%);
+    right:8%; top:50%; transform:translateY(-50%);
     writing-mode:vertical-rl;
-    font-size:clamp(17px,4.2vw,26px); font-weight:300;
-    letter-spacing:0.18em; color:rgba(255,255,255,0.5);
-    text-shadow:0 1px 6px rgba(0,0,0,0.6);
+    font-size:clamp(20px,5vw,30px); font-weight:300;
+    letter-spacing:0.15em; color:rgba(255,255,255,0.55);
+    text-shadow:0 1px 8px rgba(0,0,0,0.65);
     opacity:0; visibility:hidden;
-    transition:opacity var(--cross-fade) ease;
+    transition:opacity var(--cross-fade) ease, visibility 0s var(--cross-fade);
     pointer-events:none;
   }
-  .img-note-v.on { visibility:visible; opacity:1; transition:opacity var(--cross-fade) ease; }
+  .img-note-v.on { visibility:visible; opacity:1; transition:opacity var(--cross-fade) ease, visibility 0s 0s; }
 
   /* Annotation position variants */
-  .img-note.bottom-right { left:auto; right:7%; }
-  .img-note.bottom-left { left:7%; right:auto; }
+  .img-note.bottom-right { left:auto; right:10%; }
 
   /* ═══ SEAL REVEAL — image 05 ═══ */
   .seal-reveal {
@@ -354,13 +353,9 @@ function startSlideshow(){
 
 /* ── Seal ── */
 function scheduleSeal(){
-  // Sort chars by reading order: 曾(0)→宪(1)→涛(2)→印(3), 200ms stagger
-  const ordered = [...sealChars].sort((a,b) => parseInt(a.dataset.order) - parseInt(b.dataset.order));
   seqTimers.push(setTimeout(() => {
     sealReveal.classList.add('on');
-    ordered.forEach((c, i) => {
-      setTimeout(() => c.classList.add('show'), i * 200);
-    });
+    sealChars.forEach(c => c.classList.add('show'));
   }, 600));
   seqTimers.push(setTimeout(() => {
     sealChars.forEach(c => c.classList.remove('show'));
