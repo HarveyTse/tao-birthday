@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#000000">
+<title>涛，生日快乐</title>
+<style>
+  :root {
+    --space-xs: 8px; --space-sm: 16px; --space-md: 32px; --space-lg: 48px;
+    --ease-out: cubic-bezier(0.25, 0.1, 0, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --slide-duration: 3140ms;
+    --cross-fade: 0.7s;
+    --safe-bottom: max(32px, env(safe-area-inset-bottom, 32px));
+  }
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  html, body {
+    width:100%; height:100%; overflow:hidden; background:#000;
+    font-family:"PingFang SC","Noto Sans SC","Hiragino Sans GB","Microsoft YaHei",-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none;
+    touch-action:manipulation;
+  }
+  .stage {
+    position:relative; width:100%; height:100%;
+    max-width:min(100vw, calc(100vh * 9 / 16)); margin:0 auto;
+    overflow:hidden; background:#000;
+  }
+
+  /* ═══ GATE ═══ */
+  .gate {
+    position:absolute; inset:0; z-index:100; background:#000;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition:opacity 0.5s var(--ease-out);
+  }
+  .gate.hidden { opacity:0; pointer-events:none; }
+  .gate-inner { display:flex; flex-direction:column; align-items:center; gap:22px; pointer-events:none; transform:translateY(-2.5vh); }
+
+  .load-dot { width:5px; height:5px; border-radius:50%; background:rgba(255,255,255,0.5); display:none; }
+  .load-dot.active { display:block; animation:dotPulse 1.8s ease-in-out infinite; }
+  @keyframes dotPulse {
+    0%,100%{ opacity:0.15; transform:scale(1); }
+    50%{ opacity:0.65; transform:scale(1.15); }
+  }
+  .load-text { font-size:13px; font-weight:300; letter-spacing:0.12em; color:rgba(255,255,255,0.35); display:none; }
+  .load-text.active { display:block; }
+
+  .start-cue {
+    font-size:clamp(20px,5vw,28px); font-weight:200;
+    letter-spacing:0.3em; color:rgba(255,255,255,0.6);
+    display:none;
+  }
+  .start-cue.visible { display:block; animation:textBreathe 3.2s ease-in-out infinite; }
+  @keyframes textBreathe {
+    0%,100%{ opacity:0.58; }
+    50%{ opacity:0.82; }
+  }
+
+  .cue-ring {
+    position:absolute; top:50%; left:50%; width:160px; height:160px; margin:-80px 0 0 -80px;
+    border:1px solid rgba(255,255,255,0.25); border-radius:50%;
+    opacity:0; transform:translateY(-2.5vh) scale(1); pointer-events:none;
+  }
+  .cue-ring.fire { animation:ringExpand 2s var(--ease-out) forwards; }
+  @keyframes ringExpand {
+    0%{ opacity:0.35; transform:translateY(-2.5vh) scale(1); }
+    100%{ opacity:0; transform:translateY(-2.5vh) scale(2.8); }
+  }
+
+  /* ═══ VEIL ═══ */
+  .veil {
+    position:absolute; inset:0; z-index:200; background:#000;
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none; transition:opacity 0.5s var(--ease-out);
+  }
+  .veil.on { opacity:1; pointer-events:all; }
+  .veil-dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.45); opacity:0; transition:opacity 0.3s ease; }
+  .veil-dot.show { opacity:1; animation:dotPulse 1.2s ease-in-out infinite; }
+
+  /* ═══ VIDEO ═══ */
+  .video-layer {
+    position:absolute; inset:0; z-index:50;
+    display:flex; align-items:center; justify-content:center; background:#000;
+    visibility:hidden; opacity:0; transition:visibility 0s 0.3s, opacity 0.3s;
+  }
+  .video-layer.on { visibility:visible; opacity:1; transition:visibility 0s 0s, opacity 0s; }
+  .video-layer video { width:100%; height:100%; object-fit:cover; }
+
+  /* ═══ SLIDESHOW ═══ */
+  .slideshow { position:absolute; inset:0; z-index:30; visibility:hidden; opacity:0; pointer-events:none; }
+  .slideshow.on { visibility:visible; opacity:1; pointer-events:auto; }
+  .slide {
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:#000;
+    opacity:0; transition:opacity var(--cross-fade) ease;
+  }
+  .slide.visible { opacity:1; }
+  .slide img {
+    width:100%; height:100%; object-fit:cover; object-position:center;
+    transform:scale(1); transition:transform var(--slide-duration) cubic-bezier(0.25,0.1,0.25,1);
+  }
+  .slide.visible img { transform:scale(1.025); }
+
+  /* ═══ IMAGE ANNOTATIONS ═══ */
+  .img-note {
+    position:absolute; z-index:36;
+    left:7%; bottom:10%;
+    font-size:clamp(14px,3.2vw,19px); font-weight:300;
+    letter-spacing:0.15em; color:rgba(255,255,255,0.42);
+    text-shadow:0 1px 6px rgba(0,0,0,0.6);
+    opacity:0; visibility:hidden;
+    transition:opacity var(--cross-fade) ease;
+    pointer-events:none;
+  }
+  .img-note.on { visibility:visible; opacity:1; transition:opacity var(--cross-fade) ease; }
+
+  /* Vertical annotation for image 02 */
+  .img-note-v {
+    position:absolute; z-index:36;
+    right:max(6%,12px); top:50%; transform:translateY(-50%);
+    writing-mode:vertical-rl;
+    font-size:clamp(15px,3.8vw,21px); font-weight:300;
+    letter-spacing:0.18em; color:rgba(255,255,255,0.42);
+    text-shadow:0 1px 6px rgba(0,0,0,0.6);
+    opacity:0; visibility:hidden;
+    transition:opacity var(--cross-fade) ease;
+    pointer-events:none;
+  }
+  .img-note-v.on { visibility:visible; opacity:1; transition:opacity var(--cross-fade) ease; }
+
+  /* ═══ SEAL REVEAL — image 05 ═══ */
+  .seal-reveal {
+    position:absolute; z-index:35;
+    top:15%; left:50%; transform:translateX(-50%);
+    display:flex; gap:0.55em;
+    visibility:hidden; opacity:0;
+    transition:opacity 0.6s ease, visibility 0s 0.6s;
+    pointer-events:none;
+  }
+  .seal-reveal.on { visibility:visible; opacity:1; transition:opacity 0.6s ease, visibility 0s 0s; }
+
+  .seal-col {
+    display:flex; flex-direction:column; gap:0.2em; align-items:center;
+    font-family:"Songti SC","Noto Serif SC","STSong","SimSun",serif;
+    font-size:clamp(24px,5.5vw,36px); font-weight:400;
+    color:rgba(255,255,255,0.88);
+    text-shadow:0 1px 8px rgba(0,0,0,0.6);
+    line-height:1;
+  }
+  .seal-char {
+    opacity:0; transform:translateY(-4px);
+    transition:opacity 0.45s ease, transform 0.45s ease;
+  }
+  .seal-char.show { opacity:1; transform:translateY(0); }
+
+  /* ═══ FINAL ═══ */
+  .final-overlay {
+    position:absolute; inset:0; z-index:40;
+    display:flex; flex-direction:column; justify-content:flex-end; align-items:flex-start;
+    pointer-events:none;
+    padding:0 8% var(--safe-bottom) 8%;
+    background:linear-gradient(to top, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.08) 40%, transparent 58%);
+    opacity:0; visibility:hidden;
+    transition:opacity 0.9s var(--ease-out), visibility 0s 0.9s;
+  }
+  .final-overlay.on { visibility:visible; opacity:1; transition:opacity 0.9s var(--ease-out), visibility 0s 0s; }
+
+  .final-block { margin-bottom:40px; }
+
+  .blessing {
+    font-size:clamp(38px,8vw,54px); font-weight:200;
+    letter-spacing:0.06em; color:rgba(255,255,255,0.92); line-height:1.2;
+    opacity:0; transform:translateY(14px) scale(0.97);
+    transition:opacity 0.8s var(--ease-out), transform 0.6s var(--ease-spring);
+  }
+  .blessing.rise { opacity:1; transform:translateY(0) scale(1); transition-delay:0.3s; }
+  .blessing .comma { margin-right:0.12em; }
+
+  .signature {
+    font-size:clamp(15px,3.5vw,21px); font-weight:300;
+    letter-spacing:0.35em; color:rgba(255,255,255,0.38);
+    margin-top:var(--space-xs);
+    opacity:0; transform:translateY(12px);
+    transition:opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out);
+  }
+  .signature.rise { opacity:1; transform:translateY(0); transition-delay:0.7s; }
+
+  .replay-btn {
+    appearance:none; border:none; background:none;
+    font:inherit; font-size:13px; font-weight:300;
+    letter-spacing:0.25em; color:rgba(255,255,255,0.38);
+    cursor:pointer; pointer-events:auto;
+    padding:16px 0 0 0; margin-top:var(--space-md);
+    opacity:0; transform:translateY(8px);
+    transition:color 0.25s ease, opacity 0.6s var(--ease-out), transform 0.6s var(--ease-out);
+    -webkit-tap-highlight-color:transparent;
+  }
+  .replay-btn.on { opacity:1; transform:translateY(0); transition-delay:2s; }
+  .replay-btn:active { color:rgba(255,255,255,0.65); transition:color 0.06s ease; }
+
+  /* ═══ WARM PULSE ═══ */
+  .warm-pulse {
+    position:absolute; inset:0; z-index:32; pointer-events:none;
+    background:radial-gradient(ellipse at 50% 45%, rgba(255,180,100,0.06) 0%, transparent 70%);
+    opacity:0; visibility:hidden; transition:visibility 0s 0.5s;
+  }
+  .warm-pulse.on { visibility:visible; animation:warmBreathe 4s ease-in-out infinite; }
+  @keyframes warmBreathe { 0%,100%{ opacity:0.015; } 50%{ opacity:0.04; } }
+
+  /* ═══ REDUCED MOTION ═══ */
+  @media (prefers-reduced-motion:reduce) {
+    .slide img { transition:none!important; } .slide.visible img { transform:scale(1); }
+    .blessing,.signature { transition:opacity 0.3s ease!important; transform:none!important; }
+    .blessing.rise { transform:scale(1)!important; }
+    .start-cue.visible { animation:none; } .load-dot.active { animation:none; opacity:0.5; }
+    .cue-ring.fire { animation:none; opacity:0; } .warm-pulse.on { animation:none; opacity:0.02; }
+    .seal-char.show { transition-delay:0s!important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <!-- Gate -->
+  <div class="gate" id="gate">
+    <div class="cue-ring" id="cue-ring"></div>
+    <div class="gate-inner">
+      <div class="load-dot active" id="load-dot"></div>
+      <div class="load-text active" id="load-text">加载中…</div>
+      <div class="start-cue" id="start-cue">轻触开始</div>
+    </div>
+  </div>
+
+  <!-- Veil -->
+  <div class="veil" id="veil"><div class="veil-dot" id="veil-dot"></div></div>
+
+  <!-- Video -->
+  <div class="video-layer" id="video-layer">
+    <video id="video" playsinline webkit-playsinline x5-video-player-type="h5" x5-video-player-fullscreen="true" preload="auto" muted disablePictureInPicture>
+      <source src="assets/opening_video/primary_opening_2K30_30fps.mp4" type="video/mp4; codecs=hevc">
+      <source src="assets/opening_video/optional_opening_4K_60fps.mp4" type="video/mp4; codecs=avc1">
+    </video>
+  </div>
+
+  <!-- Slideshow -->
+  <div class="slideshow" id="slideshow">
+    <div class="slide" data-idx="0"><img src="assets/original_images/01.jpeg" alt="" loading="eager"></div>
+    <div class="slide" data-idx="1"><img src="assets/original_images/02.jpeg" alt="" loading="eager"></div>
+    <div class="slide" data-idx="2"><img src="assets/original_images/05.jpeg" alt="" loading="eager"></div>
+    <div class="slide" data-idx="3"><img src="assets/original_images/04.jpeg" alt="" loading="eager"></div>
+    <div class="slide" data-idx="4"><img src="assets/original_images/03.jpeg" alt="" loading="eager"></div>
+  </div>
+
+  <!-- Image annotations -->
+  <div class="img-note" id="note-01">手工雕制</div>
+  <div class="img-note-v" id="note-02">来自潘家园</div>
+  <div class="img-note" id="note-03">钤印留朱</div>
+
+  <!-- Seal text -->
+  <div class="seal-reveal" id="seal-reveal">
+    <div class="seal-col"><span class="seal-char" data-order="2">涛</span><span class="seal-char" data-order="3">印</span></div>
+    <div class="seal-col"><span class="seal-char" data-order="0">曾</span><span class="seal-char" data-order="1">宪</span></div>
+  </div>
+
+  <!-- Warm pulse -->
+  <div class="warm-pulse" id="warm-pulse"></div>
+
+  <!-- Final text block -->
+  <div class="final-overlay" id="final-overlay">
+    <div class="final-block">
+      <h1 class="blessing" id="blessing">涛<span class="comma">，</span>生日快乐</h1>
+      <p class="signature" id="signature">&#x2014;&#x2014; 谢海</p>
+      <button class="replay-btn" id="replay-btn">再看一次</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){'use strict';
+
+const $=id=>document.getElementById(id);
+const gate=$('gate'), cueRing=$('cue-ring'), loadDot=$('load-dot'), loadText=$('load-text'), startCue=$('start-cue');
+const veil=$('veil'), veilDot=$('veil-dot');
+const videoLayer=$('video-layer'), video=$('video');
+const slideshow=$('slideshow'), slides=[...slideshow.querySelectorAll('.slide')];
+const note01=$('note-01'), note02=$('note-02'), note03=$('note-03');
+const sealReveal=$('seal-reveal'), sealChars=[...sealReveal.querySelectorAll('.seal-char')];
+const warmPulse=$('warm-pulse');
+const finalOverlay=$('final-overlay'), bless=$('blessing'), sig=$('signature'), replayBtn=$('replay-btn');
+
+const IMG_SRC=['assets/original_images/01.jpeg','assets/original_images/02.jpeg','assets/original_images/05.jpeg','assets/original_images/04.jpeg','assets/original_images/03.jpeg'];
+const SLIDE_MS=3140, TOTAL=5;
+let seqTimers=[], currentSlide=-1, isFinal=false;
+let ringLoop=null, gateActive=false;
+
+function clearTimers(){seqTimers.forEach(clearTimeout);seqTimers=[];}
+
+/* ── Preload ── */
+function loadImg(s){return new Promise((rs,rj)=>{const i=new Image();i.onload=rs;i.onerror=rj;i.src=s;});}
+function loadVid(el){el.load();return new Promise(rs=>{if(el.readyState>=3)return rs();let d=false;const ok=()=>{if(!d){d=true;rs();}};el.addEventListener('canplaythrough',ok,{once:true});el.addEventListener('error',ok,{once:true});setTimeout(ok,5000);});}
+async function preloadAll(){const total=IMG_SRC.length+1;let n=0;function tick(){n++;if(n>=total)onReady();}IMG_SRC.forEach(s=>loadImg(s).then(tick,tick));loadVid(video).then(tick,tick);}
+function onReady(){
+  loadDot.classList.remove('active');loadText.classList.remove('active');
+  setTimeout(()=>{
+    startCue.classList.add('visible');
+    // First ring at the breathing peak (~1.6s into 3.2s cycle)
+    setTimeout(() => { fireRing(); ringLoop = setInterval(() => { if(gateActive) fireRing(); }, 3200); }, 1600);
+    gateActive=true;
+    gate.addEventListener('click',onGateTap);
+  },350);
+}
+
+function fireRing(){
+  cueRing.classList.remove('fire');void cueRing.offsetHeight;
+  cueRing.classList.add('fire');
+}
+
+/* ── Slideshow ── */
+function resetImg(el){el.style.transition='none';el.style.transform='scale(1)';void el.offsetHeight;el.style.transition='';}
+
+function showSlide(idx){
+  if(idx===currentSlide)return;
+  if(currentSlide>=0)slides[currentSlide].classList.remove('visible');
+  const next=slides[idx];
+  resetImg(next.querySelector('img'));
+  next.classList.add('visible');
+  currentSlide=idx;
+
+  // Show annotation synchronously with the slide
+  if(idx===0){note01.classList.add('on');seqTimers.push(setTimeout(()=>note01.classList.remove('on'),SLIDE_MS-300));}
+  if(idx===1){note02.classList.add('on');seqTimers.push(setTimeout(()=>note02.classList.remove('on'),SLIDE_MS-300));}
+  if(idx===3){note03.classList.add('on');seqTimers.push(setTimeout(()=>note03.classList.remove('on'),SLIDE_MS-300));}
+
+  // Seal reveal on image 05 (index 2)
+  if(idx===2)scheduleSeal();
+}
+
+function startSlideshow(){
+  currentSlide=-1;isFinal=false;
+  slideshow.classList.add('on');videoLayer.classList.remove('on');
+  clearTimers();
+  showSlide(0);
+  for(let i=1;i<TOTAL;i++)seqTimers.push(setTimeout(()=>showSlide(i),i*SLIDE_MS));
+  seqTimers.push(setTimeout(showFinal,(TOTAL-1)*SLIDE_MS+1500));
+}
+
+/* ── Seal ── */
+function scheduleSeal(){
+  // Sort chars by reading order: 曾(0)→宪(1)→涛(2)→印(3), 200ms stagger
+  const ordered = [...sealChars].sort((a,b) => parseInt(a.dataset.order) - parseInt(b.dataset.order));
+  seqTimers.push(setTimeout(() => {
+    sealReveal.classList.add('on');
+    ordered.forEach((c, i) => {
+      setTimeout(() => c.classList.add('show'), i * 200);
+    });
+  }, 600));
+  seqTimers.push(setTimeout(() => {
+    sealChars.forEach(c => c.classList.remove('show'));
+    setTimeout(() => sealReveal.classList.remove('on'), 400);
+  }, SLIDE_MS - 250));
+}
+
+/* ── Final ── */
+function showFinal(){
+  if(isFinal)return;isFinal=true;
+  finalOverlay.classList.add('on');warmPulse.classList.add('on');
+  let risen=false;
+  function rise(){if(risen)return;risen=true;bless.classList.add('rise');sig.classList.add('rise');}
+  requestAnimationFrame(()=>requestAnimationFrame(rise));setTimeout(rise,80);
+  setTimeout(()=>replayBtn.classList.add('on'),2200);
+}
+
+/* ── Gate tap ── */
+function onGateTap(){
+  gateActive=false;
+  if(ringLoop){clearInterval(ringLoop);ringLoop=null;}
+  gate.removeEventListener('click',onGateTap);
+  gate.classList.add('hidden');
+  videoLayer.classList.add('on');
+  video.currentTime=0;video.muted=true;
+  video.play().catch(()=>{setTimeout(()=>video.play().catch(()=>startSlideshow()),300);});
+}
+
+/* ── Video ended ── */
+video.addEventListener('ended',()=>setTimeout(startSlideshow,300));
+
+/* ── Replay ── */
+replayBtn.addEventListener('click',()=>{
+  if(!isFinal)return;
+  veil.classList.add('on');veilDot.classList.add('show');
+  setTimeout(()=>{
+    clearTimers();isFinal=false;currentSlide=-1;
+    slides.forEach(s=>{s.classList.remove('visible');resetImg(s.querySelector('img'));});
+    slideshow.classList.remove('on');
+    finalOverlay.classList.remove('on');bless.classList.remove('rise');sig.classList.remove('rise');
+    replayBtn.classList.remove('on');warmPulse.classList.remove('on');
+    videoLayer.classList.remove('on');
+    sealReveal.classList.remove('on');sealChars.forEach(c=>c.classList.remove('show'));
+    note01.classList.remove('on');note02.classList.remove('on');note03.classList.remove('on');
+    video.pause();video.currentTime=0;
+
+    gate.classList.remove('hidden');
+    loadDot.classList.remove('active');loadText.classList.remove('active');
+    startCue.classList.add('visible');
+    setTimeout(()=>{fireRing();ringLoop=setInterval(()=>{if(gateActive)fireRing();},3200);},1600);
+    gateActive=true;
+    gate.addEventListener('click',onGateTap);
+
+    setTimeout(()=>{veilDot.classList.remove('show');veil.classList.remove('on');},300);
+  },520);
+});
+
+preloadAll();
+})();
+</script>
+</body>
+</html>
