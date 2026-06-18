@@ -106,9 +106,9 @@
   /* ═══ IMAGE ANNOTATIONS ═══ */
   .img-note {
     position:absolute; z-index:36;
-    left:7%; bottom:10%;
-    font-size:clamp(14px,3.2vw,19px); font-weight:300;
-    letter-spacing:0.15em; color:rgba(255,255,255,0.42);
+    left:7%; bottom:14%;
+    font-size:clamp(15px,3.5vw,21px); font-weight:300;
+    letter-spacing:0.15em; color:rgba(255,255,255,0.48);
     text-shadow:0 1px 6px rgba(0,0,0,0.6);
     opacity:0; visibility:hidden;
     transition:opacity var(--cross-fade) ease;
@@ -121,8 +121,8 @@
     position:absolute; z-index:36;
     right:max(6%,12px); top:50%; transform:translateY(-50%);
     writing-mode:vertical-rl;
-    font-size:clamp(15px,3.8vw,21px); font-weight:300;
-    letter-spacing:0.18em; color:rgba(255,255,255,0.42);
+    font-size:clamp(16px,4vw,24px); font-weight:300;
+    letter-spacing:0.18em; color:rgba(255,255,255,0.48);
     text-shadow:0 1px 6px rgba(0,0,0,0.6);
     opacity:0; visibility:hidden;
     transition:opacity var(--cross-fade) ease;
@@ -257,7 +257,7 @@
   <!-- Image annotations -->
   <div class="img-note" id="note-01">手工雕制</div>
   <div class="img-note-v" id="note-02">来自潘家园</div>
-  <div class="img-note" id="note-03">钤印留朱</div>
+  <div class="img-note" id="note-03">方寸之间</div>
 
   <!-- Seal text -->
   <div class="seal-reveal" id="seal-reveal">
@@ -331,9 +331,9 @@ function showSlide(idx){
   currentSlide=idx;
 
   // Show annotation synchronously with the slide
-  if(idx===0){note01.classList.add('on');seqTimers.push(setTimeout(()=>note01.classList.remove('on'),SLIDE_MS-300));}
-  if(idx===1){note02.classList.add('on');seqTimers.push(setTimeout(()=>note02.classList.remove('on'),SLIDE_MS-300));}
-  if(idx===3){note03.classList.add('on');seqTimers.push(setTimeout(()=>note03.classList.remove('on'),SLIDE_MS-300));}
+  if(idx===0){note01.classList.add('on');seqTimers.push(setTimeout(()=>note01.classList.remove('on'),SLIDE_MS-700));}
+  if(idx===1){note02.classList.add('on');seqTimers.push(setTimeout(()=>note02.classList.remove('on'),SLIDE_MS-700));}
+  if(idx===3){note03.classList.add('on');seqTimers.push(setTimeout(()=>note03.classList.remove('on'),SLIDE_MS-700));}
 
   // Seal reveal on image 05 (index 2)
   if(idx===2)scheduleSeal();
