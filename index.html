@@ -326,10 +326,7 @@ function onGateTap(){
   gate.classList.add('hidden');
   videoLayer.classList.add('on');
   video.currentTime=0;video.muted=true;
-  // Hard deadline: if video hasn't ended in 10s, skip to slideshow
-  const deadline=setTimeout(()=>{videoLayer.classList.remove('on');startSlideshow();},10000);
-  video.addEventListener('ended',()=>{clearTimeout(deadline);}, {once:true});
-  video.play().catch(()=>{clearTimeout(deadline);startSlideshow();});
+  video.play().catch(()=>{setTimeout(()=>video.play().catch(()=>startSlideshow()),300);});
 }
 
 /* ── Video ended ── */
