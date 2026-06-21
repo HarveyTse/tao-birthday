@@ -274,19 +274,8 @@ let ringLoop=null, gateActive=false;
 function clearTimers(){seqTimers.forEach(clearTimeout);seqTimers=[];}
 
 /* ── Preload ── */
-function loadImg(s){return new Promise(rs=>{const i=new Image();let t=setTimeout(rs,5000);i.onload=()=>{clearTimeout(t);rs();};i.onerror=()=>{clearTimeout(t);rs();};i.src=s;});}
-function loadVid(el){
-  el.load();
-  return new Promise(rs=>{
-    if(el.readyState>=2) return rs();
-    let done=false;
-    const ok=()=>{if(!done){done=true;rs();}};
-    el.addEventListener('loadeddata',ok,{once:true});
-    el.addEventListener('canplay',ok,{once:true});
-    el.addEventListener('error',ok,{once:true});
-    setTimeout(ok,5000);
-  });
-}
+function loadImg(s){return new Promise((rs)=>{const i=new Image();let t=setTimeout(rs,8000);i.onload=()=>{clearTimeout(t);rs();};i.onerror=()=>{clearTimeout(t);rs();};i.src=s;});}
+function loadVid(el){el.load();return new Promise(rs=>{if(el.readyState>=3)return rs();let d=false;const ok=()=>{if(!d){d=true;rs();}};el.addEventListener('canplaythrough',ok,{once:true});el.addEventListener('error',ok,{once:true});setTimeout(ok,8000);});}
 async function preloadAll(){let n=0;const total=IMG_SRC.length+1;function tick(){n++;if(n>=total)onReady();}IMG_SRC.forEach(s=>loadImg(s).then(tick,tick));loadVid(video).then(tick,tick);}
 
 function onReady(){
