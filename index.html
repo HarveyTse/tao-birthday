@@ -211,7 +211,6 @@
       <div class="load-dot active" id="load-dot"></div>
       <div class="load-text active" id="load-text">加载中…</div>
       <div class="start-cue" id="start-cue">轻触开始</div>
-      <div id="skip-btn" style="display:none;margin-top:20px;font-size:12px;color:rgba(255,255,255,0.3);cursor:pointer;letter-spacing:0.1em;">跳过等待</div>
     </div>
   </div>
 
@@ -276,8 +275,8 @@ function clearTimers(){seqTimers.forEach(clearTimeout);seqTimers=[];}
 
 /* ── Preload ── */
 function loadImg(s){return new Promise((rs)=>{const i=new Image();let t=setTimeout(rs,3000);i.onload=()=>{clearTimeout(t);rs();};i.onerror=()=>{clearTimeout(t);rs();};i.src=s;});}
-function loadVid(el){el.load();return new Promise(rs=>{if(el.readyState>=3)return rs();let d=false;const ok=()=>{if(!d){d=true;rs();}};el.addEventListener('canplaythrough',ok,{once:true});el.addEventListener('error',ok,{once:true});setTimeout(ok,3000);});}
-async function preloadAll(){let n=0;const total=IMG_SRC.length+1;function tick(){n++;if(n>=total)onReady();}IMG_SRC.forEach(s=>loadImg(s).then(tick,tick));loadVid(video).then(tick,tick);}
+function loadVid(el){el.load();return new Promise(rs=>{if(el.readyState>=3)return rs();let d=false;const ok=()=>{if(!d){d=true;rs();}};el.addEventListener('canplaythrough',ok,{once:true});el.addEventListener('error',ok,{once:true});setTimeout(ok,10000);});}
+async function preloadAll(){let n=0;const total=IMG_SRC.length;function tick(){n++;if(n>=total)onReady();}IMG_SRC.forEach(s=>loadImg(s).then(tick,tick));}
 
 function onReady(){
   loadDot.classList.remove('active');loadText.classList.remove('active');
@@ -289,12 +288,6 @@ function onReady(){
     gate.addEventListener('click',onGateTap);
   },350);
 }
-
-// 3秒后显示跳过按钮
-setTimeout(()=>{
-  const skipBtn=document.getElementById('skip-btn');
-  if(skipBtn&&!gateActive){skipBtn.style.display='block';skipBtn.addEventListener('click',onReady);}
-},3000);
 
 function fireRing(){cueRing.classList.remove('fire');void cueRing.offsetHeight;cueRing.classList.add('fire');}
 
