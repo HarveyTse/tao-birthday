@@ -103,20 +103,29 @@
 
   /* Label-style: bottom-left / bottom-right */
   .note.label {
-    font-size:clamp(17px,4.2vw,24px); font-weight:300;
-    letter-spacing:0.12em; color:rgba(255,255,255,0.5);
-    text-shadow:0 1px 8px rgba(0,0,0,0.65);
-    left:10%; bottom:16%;
+    font-size:clamp(20px,5vw,28px); font-weight:400;
+    letter-spacing:0.12em; color:#fff;
+    text-shadow:0 1px 12px rgba(0,0,0,0.8);
+    left:15%; bottom:20%;
   }
-  .note.label.r { left:auto; right:10%; }
+  .note.label.r { left:auto; right:15%; }
 
   /* Vertical label — image 02 */
   .note.vert {
-    font-size:clamp(19px,4.8vw,28px); font-weight:300;
-    letter-spacing:0.15em; color:rgba(255,255,255,0.5);
-    text-shadow:0 1px 8px rgba(0,0,0,0.65);
+    font-size:clamp(22px,5.5vw,32px); font-weight:400;
+    letter-spacing:0.15em; color:#fff;
+    text-shadow:0 1px 12px rgba(0,0,0,0.8);
     writing-mode:vertical-rl;
-    right:8%; top:50%; transform:translateY(-50%);
+    right:15%; top:50%; transform:translateY(-50%);
+  }
+
+  /* Vertical label top-left — image 04 */
+  .note.vert-tl {
+    font-size:clamp(22px,5.5vw,32px); font-weight:400;
+    letter-spacing:0.15em; color:#fff;
+    text-shadow:0 1px 12px rgba(0,0,0,0.8);
+    writing-mode:vertical-rl;
+    left:15%; top:18%;
   }
 
   /* Seal block — image 05 */
@@ -127,9 +136,9 @@
   .note.seal .seal-col {
     display:flex; flex-direction:column; gap:0.2em; align-items:center;
     font-family:"Songti SC","Noto Serif SC","STSong","SimSun",serif;
-    font-size:clamp(22px,5vw,32px); font-weight:400;
-    color:rgba(255,255,255,0.85);
-    text-shadow:0 1px 8px rgba(0,0,0,0.6);
+    font-size:clamp(24px,5.5vw,34px); font-weight:400;
+    color:#fff;
+    text-shadow:0 1px 12px rgba(0,0,0,0.8);
     line-height:1;
   }
 
@@ -229,7 +238,7 @@
     <div class="seal-col"><span>涛</span><span>印</span></div>
     <div class="seal-col"><span>曾</span><span>宪</span></div>
   </div>
-  <div class="note label r" id="n3">雅安绿</div>
+  <div class="note vert-tl" id="n3">四川雅安绿</div>
 
   <div class="warm-pulse" id="warm-pulse"></div>
 
@@ -240,6 +249,8 @@
       <button class="replay-btn" id="replay-btn">再看一次</button>
     </div>
   </div>
+
+  <!-- ═══ end ═══ -->
 
 </div>
 
@@ -263,8 +274,19 @@ let ringLoop=null, gateActive=false;
 function clearTimers(){seqTimers.forEach(clearTimeout);seqTimers=[];}
 
 /* ── Preload ── */
-function loadImg(s){return new Promise((rs,rj)=>{const i=new Image();let t=setTimeout(()=>rs(),8000);i.onload=()=>{clearTimeout(t);rs();};i.onerror=()=>{clearTimeout(t);rj();};i.src=s;});}
-function loadVid(el){el.load();return new Promise(rs=>{if(el.readyState>=3)return rs();let d=false;const ok=()=>{if(!d){d=true;rs();}};el.addEventListener('canplaythrough',ok,{once:true});el.addEventListener('error',ok,{once:true});setTimeout(ok,8000);});}
+function loadImg(s){return new Promise(rs=>{const i=new Image();let t=setTimeout(rs,5000);i.onload=()=>{clearTimeout(t);rs();};i.onerror=()=>{clearTimeout(t);rs();};i.src=s;});}
+function loadVid(el){
+  el.load();
+  return new Promise(rs=>{
+    if(el.readyState>=2) return rs();
+    let done=false;
+    const ok=()=>{if(!done){done=true;rs();}};
+    el.addEventListener('loadeddata',ok,{once:true});
+    el.addEventListener('canplay',ok,{once:true});
+    el.addEventListener('error',ok,{once:true});
+    setTimeout(ok,5000);
+  });
+}
 async function preloadAll(){let n=0;const total=IMG_SRC.length+1;function tick(){n++;if(n>=total)onReady();}IMG_SRC.forEach(s=>loadImg(s).then(tick,tick));loadVid(video).then(tick,tick);}
 
 function onReady(){
@@ -285,18 +307,19 @@ function resetImg(el){el.style.transition='none';el.style.transform='scale(1)';v
 
 function showSlide(idx){
   if(idx===currentSlide)return;
-  if(currentSlide>=0)slides[currentSlide].classList.remove('visible');
+  if(currentSlide>=0){
+    slides[currentSlide].classList.remove('visible');
+    // 同步移除上一张的文字
+    const prevNote=notes[currentSlide];
+    if(prevNote) prevNote.classList.remove('on');
+  }
   const next=slides[idx];
   resetImg(next.querySelector('img'));
   next.classList.add('visible');
   currentSlide=idx;
 
-  // All annotations follow the same rule: show NOW, hide at cross-fade start
   const note=notes[idx];
-  if(note){
-    note.classList.add('on');
-    seqTimers.push(setTimeout(()=>note.classList.remove('on'),SLIDE_MS-700));
-  }
+  if(note) note.classList.add('on');
 }
 
 function startSlideshow(){
@@ -359,6 +382,30 @@ replayBtn.addEventListener('click',()=>{
 });
 
 preloadAll();
+
+/* ═══ 应用保存的文字调整 ═══ */
+const saved = JSON.parse(localStorage.getItem('textTweaks') || '{}');
+if (Object.keys(saved).length > 0) {
+  const noteEls = {n0:'n0',n1:'n1',n2:'n2',n3:'n3',blessing:'blessing',signature:'signature'};
+  Object.entries(saved).forEach(([id, s]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (s.w) el.style.fontWeight = s.w;
+    if (s.s) el.style.fontSize = s.s + 'px';
+    if (s.o) el.style.opacity = s.o / 100;
+    const px = (s.x || 0) + '%';
+    const py = (s.y || 0) + '%';
+    if (el.classList.contains('vert'))
+      el.style.transform = `translateY(calc(-50% + ${py})) translateX(${px})`;
+    else if (el.classList.contains('vert-tl'))
+      el.style.transform = `translate(${px}, ${py})`;
+    else if (el.classList.contains('seal'))
+      el.style.transform = `translateX(calc(-50% + ${px})) translateY(${py})`;
+    else
+      el.style.transform = `translate(${px}, ${py})`;
+  });
+}
+});
 })();
 </script>
 </body>
